@@ -1,5 +1,5 @@
 # serilog-sinks-logentries
 
-[![Build status](https://ci.appveyor.com/api/projects/status/sfvp7dw8u6aiodj1/branch/master?svg=true)](https://ci.appveyor.com/project/serilog/serilog-sinks-email/branch/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/4tfqyatqgioc1njc/branch/master?svg=true)](https://ci.appveyor.com/project/serilog/serilog-sinks-logentries/branch/master)
 
 A Serilog sink that writes events to Logentries.
