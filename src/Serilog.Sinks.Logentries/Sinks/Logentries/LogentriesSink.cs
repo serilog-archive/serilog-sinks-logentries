@@ -16,7 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Serilog.Debugging;
 using System.Text;
 using Serilog.Events;
 using Serilog.Formatting;
@@ -31,14 +30,14 @@ namespace Serilog.Sinks.Logentries
     public class LogentriesSink : PeriodicBatchingSink
     {
         readonly string _token;
-        bool _useSsl;
+        readonly bool _useSsl;
         LeClient _client;
         readonly ITextFormatter _textFormatter;
 
         /// <summary>
         /// UTF-8 output character set.
         /// </summary>
-        protected static readonly UTF8Encoding UTF8 = new UTF8Encoding();
+        protected static readonly UTF8Encoding Utf8 = new UTF8Encoding();
 
         /// <summary>
         /// A reasonable default for the number of events posted in
@@ -52,7 +51,8 @@ namespace Serilog.Sinks.Logentries
         public static readonly TimeSpan DefaultPeriod = TimeSpan.FromSeconds(2);
 
         /// <summary>
-        /// Construct a sink that saves logs to the specified storage account. Properties are being send as data and the level is used as tag.
+        /// Construct a sink that sends logs to the specified Logentries log using a <see cref="MessageTemplateTextFormatter"/> to format
+        /// the logs as simple display messages.
         /// </summary>
         /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
         /// <param name="period">The time to wait between checking for event batches.</param>
@@ -61,11 +61,23 @@ namespace Serilog.Sinks.Logentries
         /// <param name="token">The input key as found on the Logentries website.</param>
         /// <param name="useSsl">Indicates if you want to use SSL or not.</param>
         public LogentriesSink(string outputTemplate, IFormatProvider formatProvider, string token, bool useSsl, int batchPostingLimit, TimeSpan period)
-            : base(batchPostingLimit, period)
+            : this(new MessageTemplateTextFormatter(outputTemplate, formatProvider), token, useSsl, batchPostingLimit, period)
         {
-            if (outputTemplate == null) throw new ArgumentNullException("outputTemplate");
-            _textFormatter = new MessageTemplateTextFormatter(outputTemplate, formatProvider);
+        }
 
+        /// <summary>
+        /// Construct a sink that sends logs to the specified Logentries log using a provided <see cref="ITextFormatter"/>.
+        /// </summary>
+        /// <param name="textFormatter">Used to format the logs sent to Logentries.</param>
+        /// <param name="token">The input key as found on the Logentries website.</param>
+        /// <param name="useSsl">Indicates if you want to use SSL or not.</param>
+        /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
+        /// <param name="period">The time to wait between checking for event batches.</param>
+        public LogentriesSink(ITextFormatter textFormatter, string token, bool useSsl, int batchPostingLimit, TimeSpan period)
+             : base(batchPostingLimit, period)
+         {
+            if (textFormatter == null) throw new ArgumentNullException("textFormatter");
+            _textFormatter = textFormatter;
             _token = token;
             _useSsl = useSsl;
         }
@@ -102,7 +114,7 @@ namespace Serilog.Sinks.Logentries
 
                 var finalLine = _token + renderedString + '\n';
 
-                var data = UTF8.GetBytes(finalLine);
+                var data = Utf8.GetBytes(finalLine);
 
                 _client.Write(data, 0, data.Length);
             }
