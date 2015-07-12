@@ -14,17 +14,17 @@
 
 
 // Copyright (c) 2014 Logentries
-   
+
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-   
+
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-   
+
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -34,88 +34,140 @@
 // THE SOFTWARE.
 
 using System;
-using System.IO;
-using System.Net.Security;
-using System.Net.Sockets;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using Serilog.Debugging;
+using Sockets.Plugin;
+using System.Net.Http;
 
 namespace Serilog.Sinks.Logentries
 {
-    class LeClient
+   internal  class LeClient
     {
+        #region Constants
+
         // Logentries API server address. 
-        const String LeApiUrl = "api.logentries.com";
-
+        const string    API_TCP_NOSSL       = "data.logentries.com";
+        const string    API_TCP_SSL         = "api.logentries.com";
         // Port number for token logging on Logentries API server. 
-        const int LeApiTokenPort = 10000;
+        const int       API_TCP_NOSSL_PORT  = 10000; // TCP
+        const int       API_TCP_SSL_PORT    = 20000; // TCP-SSL
 
-        // Port number for TLS encrypted token logging on Logentries API server 
-        const int LeApiTokenTlsPort = 20000;
+        const string    API_HTTPUT_URL          = "http{0}://api.logentries.com/{1}/hosts/{2}/{3}?realtime=1";
+        const int       API_HTTPUT_NOSSL_PORT   = 80;   // HTTP
+        const int       API_HTTPUT_SSL_PORT     = 443;  // HTTOS
+        #endregion Constants
 
-        // Port number for HTTP PUT logging on Logentries API server. 
-        const int LeApiHttpPort = 80;
+        #region Member Variables
+        bool _useSsl;
+        bool _useHttpPut;
+        int _tcpPort;
+        string _url;
+        TcpSocketClient _socketClient;
+        HttpClient _httpClient;
+        #endregion Member Variables
 
-        // Port number for SSL HTTP PUT logging on Logentries API server. 
-        const int LeApiHttpsPort = 443;
-
-        public LeClient(bool useHttpPut, bool useSsl)
+        #region Constructor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LeClient" /> class.
+        /// </summary>
+        /// <param name="useHttpPut">if set to <c>true</c> [use HTTP put].</param>
+        /// <param name="useSsl">if set to <c>true</c> [use SSL].</param>
+        /// <param name="accountKey">The account key.</param>
+        /// <param name="hostKey">The host key.</param>
+        /// <param name="logKey">The log key.</param>
+        public LeClient(bool useHttpPut, bool useSsl, string accountKey = null, string hostKey = null, string logKey = null)
         {
-            m_UseSsl = useSsl;
-            if (!m_UseSsl)
-                m_TcpPort = useHttpPut ? LeApiHttpPort : LeApiTokenPort;
-            else
-                m_TcpPort = useHttpPut ? LeApiHttpsPort : LeApiTokenTlsPort;
-        }
+            _useSsl = useSsl;
+            _useHttpPut = useHttpPut;
 
-        bool m_UseSsl;
-        int m_TcpPort;
-        TcpClient m_Client;
-        Stream m_Stream;
-        SslStream m_SslStream;
-
-        Stream ActiveStream
-        {
-            get
+            if (_useHttpPut)
             {
-                return m_UseSsl ? m_SslStream : m_Stream;
-            }
-        }
+                if (string.IsNullOrEmpty(accountKey)) throw new ArgumentNullException("accountKey", "Account Key required for HTTP PUT API");
+                if (string.IsNullOrEmpty(logKey)) throw new ArgumentNullException("logKey", "Log Key required for HTTP PUT API");
 
+                _tcpPort = _useSsl ? API_HTTPUT_SSL_PORT : API_HTTPUT_NOSSL_PORT;
+                _url = string.Format(API_HTTPUT_URL, _useSsl ? "s" : "", accountKey, hostKey, logKey);
+            }
+            else
+            {
+                _tcpPort = _useSsl ? API_TCP_SSL_PORT : API_TCP_NOSSL_PORT;
+                _url = _useSsl || _useHttpPut ? API_TCP_SSL : API_TCP_NOSSL;
+            }
+
+        }
+        #endregion Constructor
+
+        #region Public Methods
+        /// <summary>
+        /// Connects to the Logentries API Server.
+        /// </summary>
         public void Connect()
         {
-            m_Client = new TcpClient(LeApiUrl, m_TcpPort)
-                       {
-                           NoDelay = true
-                       };
-
-            m_Stream = m_Client.GetStream();
-
-            if (m_UseSsl)
+            if (_useHttpPut)
             {
-                m_SslStream = new SslStream(m_Stream);
-                m_SslStream.AuthenticateAsClient(LeApiUrl);
+                _httpClient = new HttpClient();
+            }
+            else
+            {
+                _socketClient = new TcpSocketClient();
+
+                var task = _socketClient.ConnectAsync(_url, _tcpPort, _useSsl);
+
+                task.Wait(new TimeSpan(0, 0, 30));
             }
         }
 
+        /// <summary>
+        /// Writes the specified buffer to the API server.
+        /// </summary>
+        /// <param name="buffer">The buffer.</param>
+        /// <param name="offset">The offset.</param>
+        /// <param name="count">The count.</param>
         public void Write(byte[] buffer, int offset, int count)
         {
-            ActiveStream.Write(buffer, offset, count);
+            if (_useHttpPut)
+            {                
+                var response = _httpClient.PutAsync(_url, new ByteArrayContent(buffer, offset, count));
+
+                response.Result.EnsureSuccessStatusCode();
+            }
+            else
+            {
+                _socketClient.WriteStream.Write(buffer, offset, count);
+            }
         }
 
+        /// <summary>
+        /// Writes the specified data.
+        /// </summary>
+        /// <param name="data">The data.</param>
+        public void Write(string data)
+        {
+            byte[] buffer = System.Text.Encoding.UTF8.GetBytes(data);
+
+            Write(buffer, 0, buffer.Length);
+        }
+
+        /// <summary>
+        /// Flushes the buffer.
+        /// </summary>
         public void Flush()
         {
-            ActiveStream.Flush();
+            if (_socketClient != null && !_useHttpPut)
+            {
+                _socketClient.WriteStream.Flush();
+            }
         }
 
+        /// <summary>
+        /// Closes the socket connection.
+        /// </summary>
         public void Close()
         {
-            if (m_Client != null)
+            if (_socketClient != null && !_useHttpPut)
             {
                 try
                 {
-                    m_Client.Close();
+                    _socketClient.DisconnectAsync();
                 }
                 catch (Exception ex)
                 {
@@ -123,5 +175,6 @@ namespace Serilog.Sinks.Logentries
                 }
             }
         }
+        #endregion Public Methods
     }
 }

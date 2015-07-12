@@ -59,7 +59,7 @@ namespace Serilog
             var defaultedPeriod = period ?? LogentriesSink.DefaultPeriod;
 
             return loggerConfiguration.Sink(
-                new LogentriesSink(outputTemplate, formatProvider, token, useSsl, batchPostingLimit, defaultedPeriod),
+                (Serilog.Core.ILogEventSink)new LogentriesSink(outputTemplate, formatProvider, token, useSsl, batchPostingLimit, defaultedPeriod),
                 restrictedToMinimumLevel);
         }
          
@@ -96,7 +96,7 @@ namespace Serilog
             var defaultedPeriod = period ?? LogentriesSink.DefaultPeriod;
 
             return loggerConfiguration.Sink(
-                new LogentriesSink(textFormatter, token, useSsl, batchPostingLimit, defaultedPeriod),
+                (Serilog.Core.ILogEventSink)new LogentriesSink(textFormatter, token, useSsl, batchPostingLimit, defaultedPeriod),
                 restrictedToMinimumLevel);
         }
     }
