@@ -16,7 +16,7 @@
         </dependencies>
     </metadata>
     <files>
-        <file src="bin\Release\Serilog.Sinks.Logentries.dll" target="lib\portable-net45+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1" />
-        <file src="bin\Release\Serilog.Sinks.Logentries.pdb" target="lib\portable-net45+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1" />
+        <file src="bin\Release\Serilog.Sinks.Logentries.dll" target="lib\portable-net45+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1+Xamarin.iOS" />
+        <file src="bin\Release\Serilog.Sinks.Logentries.pdb" target="lib\portable-net45+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1+Xamarin.iOS" />
     </files>
 </package>
