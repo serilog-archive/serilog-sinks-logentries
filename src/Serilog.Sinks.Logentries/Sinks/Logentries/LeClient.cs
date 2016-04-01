@@ -46,13 +46,13 @@ namespace Serilog.Sinks.Logentries
     class LeClient
     {
         // Logentries API server address. 
-        const String LeApiUrl = "api.logentries.com";
+        const String LeApiUrl = "data.logentries.com";
 
         // Port number for token logging on Logentries API server. 
-        const int LeApiTokenPort = 10000;
+        const int LeApiTokenPort = 80;
 
         // Port number for TLS encrypted token logging on Logentries API server 
-        const int LeApiTokenTlsPort = 20000;
+        const int LeApiTokenTlsPort = 443;
 
         // Port number for HTTP PUT logging on Logentries API server. 
         const int LeApiHttpPort = 80;
