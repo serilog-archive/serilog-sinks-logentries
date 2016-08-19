@@ -85,17 +85,18 @@ namespace Serilog.Sinks.Logentries
 
         public void Connect()
         {
-            m_Client = new TcpClient(LeApiUrl, m_TcpPort)
+            m_Client = new TcpClient()
                        {
                            NoDelay = true
                        };
+            m_Client.ConnectAsync(LeApiUrl, m_TcpPort).Wait();
 
             m_Stream = m_Client.GetStream();
 
             if (m_UseSsl)
             {
                 m_SslStream = new SslStream(m_Stream);
-                m_SslStream.AuthenticateAsClient(LeApiUrl);
+                m_SslStream.AuthenticateAsClientAsync(LeApiUrl).Wait();
             }
         }
 
@@ -115,7 +116,11 @@ namespace Serilog.Sinks.Logentries
             {
                 try
                 {
+#if NETSTANDARD1_3
+                    m_Client.Dispose();
+#else
                     m_Client.Close();
+#endif
                 }
                 catch (Exception ex)
                 {

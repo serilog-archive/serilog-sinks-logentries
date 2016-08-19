@@ -1,0 +1,31 @@
+﻿{
+  "version": "2.0.0",
+  "description": "Serilog event sink that writes to the Logentries.com service.",
+  "authors": [ "Serilog Contributors", "Michiel van Oudheusden" ],
+  "packOptions": {
+    "tags": [ "serilog", "logging", "Logentries", "error" ],
+    "projectUrl": "http://serilog.net",
+    "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0",
+    "iconUrl": "http://serilog.net/images/serilog-sink-nuget.png"
+  },
+  "dependencies": {
+    "Serilog": "2.0.0",
+    "Serilog.Sinks.PeriodicBatching": "2.0.0"
+  },
+
+  "buildOptions": {
+    "keyFile": "../../assets/Serilog.snk"
+  },
+  "frameworks": {
+    "net45": {
+      "frameworkAssemblies": { }
+    },
+    "netstandard1.3": {
+      "dependencies": {
+        "System.Text.Encoding.Extensions": "4.0.11",
+        "System.Net.Security": "4.0.0",
+        "System.Net.Sockets": "4.1.0"
+      }
+    }
+  }
+}
