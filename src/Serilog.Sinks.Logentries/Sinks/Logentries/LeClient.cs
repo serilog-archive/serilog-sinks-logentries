@@ -37,8 +37,6 @@ using System;
 using System.IO;
 using System.Net.Security;
 using System.Net.Sockets;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using Serilog.Debugging;
 
 namespace Serilog.Sinks.Logentries
@@ -116,11 +114,7 @@ namespace Serilog.Sinks.Logentries
             {
                 try
                 {
-#if NETSTANDARD1_3
                     m_Client.Dispose();
-#else
-                    m_Client.Close();
-#endif
                 }
                 catch (Exception ex)
                 {
