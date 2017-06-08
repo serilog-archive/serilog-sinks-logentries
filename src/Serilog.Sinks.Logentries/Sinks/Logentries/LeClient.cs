@@ -114,7 +114,11 @@ namespace Serilog.Sinks.Logentries
             {
                 try
                 {
+#if NETSTANDARD1_3
                     m_Client.Dispose();
+#else
+                    m_Client.Close();
+#endif
                 }
                 catch (Exception ex)
                 {
