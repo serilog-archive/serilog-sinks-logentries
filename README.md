@@ -1,6 +1,4 @@
-# Serilog.Sinks.Logentries
-
-[![Build status](https://ci.appveyor.com/api/projects/status/ha18n45fe6wh7v9s/branch/dev?svg=true)](https://ci.appveyor.com/project/agecas/serilog-sinks-logentries/branch/dev)
+# Serilog.Sinks.Logentries [![Build status](https://ci.appveyor.com/api/projects/status/4tfqyatqgioc1njc?svg=true)](https://ci.appveyor.com/project/serilog/serilog-sinks-logentries)
 
 A Serilog sink that writes events to Logentries.
 
