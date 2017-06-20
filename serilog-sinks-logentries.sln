@@ -1,15 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.12
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Serilog.Sinks.Logentries", "src\Serilog.Sinks.Logentries\Serilog.Sinks.Logentries.xproj", "{FD118030-2DE5-400F-8586-5A70F46C9C18}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B17A977A-72D7-4204-8EA2-63FFA87E4677}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{CCC3B1F9-21B1-4D1C-8F6D-2D5898A67381}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Serilog.Sinks.Logentries.Tests", "test\Serilog.Sinks.Logentries.Tests\Serilog.Sinks.Logentries.Tests.xproj", "{B75E74DC-3F7F-49D9-BE17-B4E79DD7E53A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.Sinks.Logentries", "src\Serilog.Sinks.Logentries\Serilog.Sinks.Logentries.csproj", "{FD118030-2DE5-400F-8586-5A70F46C9C18}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.Sinks.Logentries.Tests", "test\Serilog.Sinks.Logentries.Tests\Serilog.Sinks.Logentries.Tests.csproj", "{B75E74DC-3F7F-49D9-BE17-B4E79DD7E53A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
