@@ -76,8 +76,7 @@ namespace Serilog.Sinks.Logentries
         public LogentriesSink(ITextFormatter textFormatter, string token, bool useSsl, int batchPostingLimit, TimeSpan period)
              : base(batchPostingLimit, period)
          {
-            if (textFormatter == null) throw new ArgumentNullException("textFormatter");
-            _textFormatter = textFormatter;
+             _textFormatter = textFormatter ?? throw new ArgumentNullException(nameof(textFormatter));
             _token = token;
             _useSsl = useSsl;
         }
