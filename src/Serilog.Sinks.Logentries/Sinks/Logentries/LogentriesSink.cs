@@ -21,6 +21,7 @@ using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Formatting.Display;
 using Serilog.Sinks.PeriodicBatching;
+using System.Threading.Tasks;
 
 namespace Serilog.Sinks.Logentries
 {
@@ -75,8 +76,8 @@ namespace Serilog.Sinks.Logentries
         /// <param name="period">The time to wait between checking for event batches.</param>
         public LogentriesSink(ITextFormatter textFormatter, string token, bool useSsl, int batchPostingLimit, TimeSpan period)
              : base(batchPostingLimit, period)
-         {
-             _textFormatter = textFormatter ?? throw new ArgumentNullException(nameof(textFormatter));
+        {
+            _textFormatter = textFormatter ?? throw new ArgumentNullException(nameof(textFormatter));
             _token = token;
             _useSsl = useSsl;
         }
@@ -86,18 +87,18 @@ namespace Serilog.Sinks.Logentries
         /// </summary>
         /// <param name="events">The events to emit.</param>
         /// <remarks>
-        /// Override either <see cref="M:Serilog.Sinks.PeriodicBatching.PeriodicBatchingSink.EmitBatch(System.Collections.Generic.IEnumerable{Serilog.Events.LogEvent})" /> or <see cref="M:Serilog.Sinks.PeriodicBatching.PeriodicBatchingSink.EmitBatchAsync(System.Collections.Generic.IEnumerable{Serilog.Events.LogEvent})" />,
+        /// Override either <see cref="M:Serilog.Sinks.PeriodicBatching.PeriodicBatchingSink.EmitBatchAsync(System.Collections.Generic.IEnumerable{Serilog.Events.LogEvent})" /> or <see cref="M:Serilog.Sinks.PeriodicBatching.PeriodicBatchingSink.EmitBatchAsync(System.Collections.Generic.IEnumerable{Serilog.Events.LogEvent})" />,
         /// not both.
         /// </remarks>
-        protected override void EmitBatch(IEnumerable<LogEvent> events)
+        protected override async Task EmitBatchAsync(IEnumerable<LogEvent> events)
         {
             if (events.Any() == false)
-                return;
+                await Task.FromResult(0);
 
             if (_client == null)
                 _client = new LeClient(false, _useSsl);
 
-            _client.Connect();
+            await _client.ConnectAsync().ConfigureAwait(false);
 
             foreach (var logEvent in events)
             {
@@ -115,10 +116,10 @@ namespace Serilog.Sinks.Logentries
 
                 var data = Utf8.GetBytes(finalLine);
 
-                _client.Write(data, 0, data.Length);
+                await _client.WriteAsync(data, 0, data.Length).ConfigureAwait(false);
             }
 
-            _client.Flush();
+            await _client.FlushAsync().ConfigureAwait(false);
             _client.Close();
         }
 
@@ -130,7 +131,7 @@ namespace Serilog.Sinks.Logentries
         {
             if (_client != null)
             {
-                _client.Flush();
+                _client.FlushAsync().Wait();
                 _client.Close();
             }
             base.Dispose(disposing);
