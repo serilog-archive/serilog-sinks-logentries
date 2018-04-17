@@ -40,16 +40,19 @@ namespace Serilog
         /// <param name="useSsl">Specify if the connection needs to be secured.</param>
         /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
         /// <param name="period">The time to wait between checking for event batches.</param>
+        /// <param name="joinFormattedEventLines">Indicates if newline characters should be removed before sending a
+        /// formatted event to Logentries.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration Logentries(
             this LoggerSinkConfiguration loggerConfiguration,
-             string token, bool useSsl = true,
+            string token, bool useSsl = true,
             int batchPostingLimit = LogentriesSink.DefaultBatchPostingLimit,
             TimeSpan? period = null,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             string outputTemplate = DefaultLogentriesOutputTemplate,
-            IFormatProvider formatProvider = null)
+            IFormatProvider formatProvider = null,
+            bool joinFormattedEventLines = true)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException("loggerConfiguration");
 
@@ -59,10 +62,10 @@ namespace Serilog
             var defaultedPeriod = period ?? LogentriesSink.DefaultPeriod;
 
             return loggerConfiguration.Sink(
-                new LogentriesSink(outputTemplate, formatProvider, token, useSsl, batchPostingLimit, defaultedPeriod),
+                new LogentriesSink(outputTemplate, formatProvider, token, useSsl, batchPostingLimit, defaultedPeriod, joinFormattedEventLines),
                 restrictedToMinimumLevel);
         }
-         
+
         /// <summary>
         /// Adds a sink that writes log events to the Logentries.com webservice. 
         /// Create a token TCP input for this on the logentries website. 
@@ -74,6 +77,8 @@ namespace Serilog
         /// <param name="useSsl">Specify if the connection needs to be secured.</param>
         /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
         /// <param name="period">The time to wait between checking for event batches.</param>
+        /// <param name="joinFormattedEventLines">Indicates if newline characters should be removed before sending a
+        /// formatted event to Logentries.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration Logentries(
@@ -83,7 +88,8 @@ namespace Serilog
             bool useSsl = true,
             int batchPostingLimit = LogentriesSink.DefaultBatchPostingLimit,
             TimeSpan? period = null,
-            LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum)
+            LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
+            bool joinFormattedEventLines = true)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException("loggerConfiguration");
 
@@ -96,7 +102,7 @@ namespace Serilog
             var defaultedPeriod = period ?? LogentriesSink.DefaultPeriod;
 
             return loggerConfiguration.Sink(
-                new LogentriesSink(textFormatter, token, useSsl, batchPostingLimit, defaultedPeriod),
+                new LogentriesSink(textFormatter, token, useSsl, batchPostingLimit, defaultedPeriod, joinFormattedEventLines),
                 restrictedToMinimumLevel);
         }
     }
