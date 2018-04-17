@@ -32,6 +32,7 @@ namespace Serilog.Sinks.Logentries
     {
         readonly string _token;
         readonly bool _useSsl;
+        readonly bool _joinFormattedEventLines;
         LeClient _client;
         readonly ITextFormatter _textFormatter;
 
@@ -61,8 +62,10 @@ namespace Serilog.Sinks.Logentries
         /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
         /// <param name="token">The input key as found on the Logentries website.</param>
         /// <param name="useSsl">Indicates if you want to use SSL or not.</param>
-        public LogentriesSink(string outputTemplate, IFormatProvider formatProvider, string token, bool useSsl, int batchPostingLimit, TimeSpan period)
-            : this(new MessageTemplateTextFormatter(outputTemplate, formatProvider), token, useSsl, batchPostingLimit, period)
+        /// <param name="joinFormattedEventLines">Indicates if newline characters should be removed before sending a
+        /// formatted event to Logentries.</param>
+        public LogentriesSink(string outputTemplate, IFormatProvider formatProvider, string token, bool useSsl, int batchPostingLimit, TimeSpan period, bool joinFormattedEventLines)
+            : this(new MessageTemplateTextFormatter(outputTemplate, formatProvider), token, useSsl, batchPostingLimit, period, joinFormattedEventLines)
         {
         }
 
@@ -74,12 +77,15 @@ namespace Serilog.Sinks.Logentries
         /// <param name="useSsl">Indicates if you want to use SSL or not.</param>
         /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
         /// <param name="period">The time to wait between checking for event batches.</param>
-        public LogentriesSink(ITextFormatter textFormatter, string token, bool useSsl, int batchPostingLimit, TimeSpan period)
+        /// <param name="joinFormattedEventLines">Indicates if newline characters should be removed before sending a
+        /// formatted event to Logentries.</param>
+        public LogentriesSink(ITextFormatter textFormatter, string token, bool useSsl, int batchPostingLimit, TimeSpan period, bool joinFormattedEventLines)
              : base(batchPostingLimit, period)
         {
             _textFormatter = textFormatter ?? throw new ArgumentNullException(nameof(textFormatter));
             _token = token;
             _useSsl = useSsl;
+            _joinFormattedEventLines = joinFormattedEventLines;
         }
 
         /// <summary>
@@ -107,10 +113,13 @@ namespace Serilog.Sinks.Logentries
 
                 var renderedString = renderSpace.ToString();
 
-                // LogEntries uses a NewLine character to determine the end of a log message
+                // LogEntries uses a NewLine character to determine the end of a log message.
                 // this causes problems with stack traces.
                 if (!string.IsNullOrEmpty(renderedString))
-                    renderedString = renderedString.Replace("\n", "");
+                {
+                    var newlineReplacement = _joinFormattedEventLines ? "" : "\n" + _token;
+                    renderedString = renderedString.Replace("\n", newlineReplacement);
+                }
 
                 var finalLine = _token + renderedString + '\n';
 
