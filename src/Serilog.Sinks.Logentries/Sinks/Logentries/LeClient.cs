@@ -44,9 +44,6 @@ namespace Serilog.Sinks.Logentries
 {
     class LeClient
     {
-        // Logentries API server address. 
-        const String LeApiUrl = "data.logentries.com";
-
         // Port number for token logging on Logentries API server. 
         const int LeApiTokenPort = 80;
 
@@ -59,9 +56,10 @@ namespace Serilog.Sinks.Logentries
         // Port number for SSL HTTP PUT logging on Logentries API server. 
         const int LeApiHttpsPort = 443;
 
-        public LeClient(bool useHttpPut, bool useSsl)
+        public LeClient(bool useHttpPut, bool useSsl, string url)
         {
             m_UseSsl = useSsl;
+            _url = url;
             if (!m_UseSsl)
                 m_TcpPort = useHttpPut ? LeApiHttpPort : LeApiTokenPort;
             else
@@ -69,6 +67,7 @@ namespace Serilog.Sinks.Logentries
         }
 
         bool m_UseSsl;
+        private readonly string _url;
         int m_TcpPort;
         TcpClient m_Client;
         Stream m_Stream;
@@ -88,14 +87,14 @@ namespace Serilog.Sinks.Logentries
             {
                 NoDelay = true
             };
-            await m_Client.ConnectAsync(LeApiUrl, m_TcpPort).ConfigureAwait(false);
+            await m_Client.ConnectAsync(_url, m_TcpPort).ConfigureAwait(false);
 
             m_Stream = m_Client.GetStream();
 
             if (m_UseSsl)
             {
                 m_SslStream = new SslStream(m_Stream);
-                await m_SslStream.AuthenticateAsClientAsync(LeApiUrl).ConfigureAwait(false);
+                await m_SslStream.AuthenticateAsClientAsync(_url).ConfigureAwait(false);
             }
         }
 

@@ -32,9 +32,10 @@ namespace Serilog.Sinks.Logentries
     {
         readonly string _token;
         readonly bool _useSsl;
+        private readonly string _url;
         LeClient _client;
         readonly ITextFormatter _textFormatter;
-
+        
         /// <summary>
         /// UTF-8 output character set.
         /// </summary>
@@ -61,8 +62,9 @@ namespace Serilog.Sinks.Logentries
         /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
         /// <param name="token">The input key as found on the Logentries website.</param>
         /// <param name="useSsl">Indicates if you want to use SSL or not.</param>
-        public LogentriesSink(string outputTemplate, IFormatProvider formatProvider, string token, bool useSsl, int batchPostingLimit, TimeSpan period)
-            : this(new MessageTemplateTextFormatter(outputTemplate, formatProvider), token, useSsl, batchPostingLimit, period)
+        /// <param name="url">Url to logentries</param>
+        public LogentriesSink(string outputTemplate, IFormatProvider formatProvider, string token, bool useSsl, int batchPostingLimit, TimeSpan period, string url)
+            : this(new MessageTemplateTextFormatter(outputTemplate, formatProvider), token, useSsl, batchPostingLimit, period, url)
         {
         }
 
@@ -74,12 +76,13 @@ namespace Serilog.Sinks.Logentries
         /// <param name="useSsl">Indicates if you want to use SSL or not.</param>
         /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
         /// <param name="period">The time to wait between checking for event batches.</param>
-        public LogentriesSink(ITextFormatter textFormatter, string token, bool useSsl, int batchPostingLimit, TimeSpan period)
+        public LogentriesSink(ITextFormatter textFormatter, string token, bool useSsl, int batchPostingLimit, TimeSpan period, string url)
              : base(batchPostingLimit, period)
         {
             _textFormatter = textFormatter ?? throw new ArgumentNullException(nameof(textFormatter));
             _token = token;
             _useSsl = useSsl;
+            _url = url;
         }
 
         /// <summary>
@@ -96,7 +99,7 @@ namespace Serilog.Sinks.Logentries
                 await Task.FromResult(0);
 
             if (_client == null)
-                _client = new LeClient(false, _useSsl);
+                _client = new LeClient(false, _useSsl, _url);
 
             await _client.ConnectAsync().ConfigureAwait(false);
 
