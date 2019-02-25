@@ -1,8 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Serilog event sink that writes to the Logentries.com service.</Description>
-    <VersionPrefix>3.0.26</VersionPrefix>
+    <VersionPrefix>4.0.0</VersionPrefix>
     <Authors>Serilog Contributors;Michiel van Oudheusden</Authors>
     <TargetFrameworks>net45;netstandard1.3</TargetFrameworks>
     <AssemblyName>Serilog.Sinks.Logentries</AssemblyName>

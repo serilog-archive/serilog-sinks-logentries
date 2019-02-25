@@ -26,6 +26,9 @@ namespace Serilog
     public static class LoggerConfigurationLogentriesExtensions
     {
         const string DefaultLogentriesOutputTemplate = "{Timestamp:G} [{Level}] {Message}{NewLine}{Exception}";
+        
+        // Logentries API server address. 
+        const string LeApiUrl = "data.logentries.com";
 
         /// <summary>
         /// Adds a sink that writes log events to the Logentries.com webservice. 
@@ -40,6 +43,7 @@ namespace Serilog
         /// <param name="useSsl">Specify if the connection needs to be secured.</param>
         /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
         /// <param name="period">The time to wait between checking for event batches.</param>
+        /// <param name="url">Url to logentries; this default to data.logentries.com</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration Logentries(
@@ -49,7 +53,8 @@ namespace Serilog
             TimeSpan? period = null,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             string outputTemplate = DefaultLogentriesOutputTemplate,
-            IFormatProvider formatProvider = null)
+            IFormatProvider formatProvider = null,
+            string url = LeApiUrl)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException("loggerConfiguration");
 
@@ -59,10 +64,10 @@ namespace Serilog
             var defaultedPeriod = period ?? LogentriesSink.DefaultPeriod;
 
             return loggerConfiguration.Sink(
-                new LogentriesSink(outputTemplate, formatProvider, token, useSsl, batchPostingLimit, defaultedPeriod),
+                new LogentriesSink(outputTemplate, formatProvider, token, useSsl, batchPostingLimit, defaultedPeriod, url),
                 restrictedToMinimumLevel);
         }
-         
+
         /// <summary>
         /// Adds a sink that writes log events to the Logentries.com webservice. 
         /// Create a token TCP input for this on the logentries website. 
@@ -74,6 +79,7 @@ namespace Serilog
         /// <param name="useSsl">Specify if the connection needs to be secured.</param>
         /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
         /// <param name="period">The time to wait between checking for event batches.</param>
+        /// <param name="url">Url to logentries; this default to data.logentries.com</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration Logentries(
@@ -83,7 +89,8 @@ namespace Serilog
             bool useSsl = true,
             int batchPostingLimit = LogentriesSink.DefaultBatchPostingLimit,
             TimeSpan? period = null,
-            LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum)
+            LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
+            string url = LeApiUrl)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException("loggerConfiguration");
 
@@ -96,7 +103,7 @@ namespace Serilog
             var defaultedPeriod = period ?? LogentriesSink.DefaultPeriod;
 
             return loggerConfiguration.Sink(
-                new LogentriesSink(textFormatter, token, useSsl, batchPostingLimit, defaultedPeriod),
+                new LogentriesSink(textFormatter, token, useSsl, batchPostingLimit, defaultedPeriod, url),
                 restrictedToMinimumLevel);
         }
     }

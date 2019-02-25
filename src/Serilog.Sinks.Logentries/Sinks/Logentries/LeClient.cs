@@ -14,17 +14,17 @@
 
 
 // Copyright (c) 2014 Logentries
-   
+
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-   
+
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-   
+
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -38,14 +38,12 @@ using System.IO;
 using System.Net.Security;
 using System.Net.Sockets;
 using Serilog.Debugging;
+using System.Threading.Tasks;
 
 namespace Serilog.Sinks.Logentries
 {
     class LeClient
     {
-        // Logentries API server address. 
-        const String LeApiUrl = "data.logentries.com";
-
         // Port number for token logging on Logentries API server. 
         const int LeApiTokenPort = 80;
 
@@ -58,9 +56,10 @@ namespace Serilog.Sinks.Logentries
         // Port number for SSL HTTP PUT logging on Logentries API server. 
         const int LeApiHttpsPort = 443;
 
-        public LeClient(bool useHttpPut, bool useSsl)
+        public LeClient(bool useHttpPut, bool useSsl, string url)
         {
             m_UseSsl = useSsl;
+            _url = url;
             if (!m_UseSsl)
                 m_TcpPort = useHttpPut ? LeApiHttpPort : LeApiTokenPort;
             else
@@ -68,6 +67,7 @@ namespace Serilog.Sinks.Logentries
         }
 
         bool m_UseSsl;
+        private readonly string _url;
         int m_TcpPort;
         TcpClient m_Client;
         Stream m_Stream;
@@ -81,31 +81,31 @@ namespace Serilog.Sinks.Logentries
             }
         }
 
-        public void Connect()
+        public async Task ConnectAsync()
         {
             m_Client = new TcpClient()
-                       {
-                           NoDelay = true
-                       };
-            m_Client.ConnectAsync(LeApiUrl, m_TcpPort).Wait();
+            {
+                NoDelay = true
+            };
+            await m_Client.ConnectAsync(_url, m_TcpPort).ConfigureAwait(false);
 
             m_Stream = m_Client.GetStream();
 
             if (m_UseSsl)
             {
                 m_SslStream = new SslStream(m_Stream);
-                m_SslStream.AuthenticateAsClientAsync(LeApiUrl).Wait();
+                await m_SslStream.AuthenticateAsClientAsync(_url).ConfigureAwait(false);
             }
         }
 
-        public void Write(byte[] buffer, int offset, int count)
+        public async Task WriteAsync(byte[] buffer, int offset, int count)
         {
-            ActiveStream.Write(buffer, offset, count);
+            await ActiveStream.WriteAsync(buffer, offset, count).ConfigureAwait(false);
         }
 
-        public void Flush()
+        public async Task FlushAsync()
         {
-            ActiveStream.Flush();
+            await ActiveStream.FlushAsync().ConfigureAwait(false);
         }
 
         public void Close()
