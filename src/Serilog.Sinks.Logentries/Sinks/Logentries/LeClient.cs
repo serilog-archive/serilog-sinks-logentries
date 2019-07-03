@@ -44,26 +44,11 @@ namespace Serilog.Sinks.Logentries
 {
     class LeClient
     {
-        // Port number for token logging on Logentries API server. 
-        const int LeApiTokenPort = 80;
-
-        // Port number for TLS encrypted token logging on Logentries API server 
-        const int LeApiTokenTlsPort = 443;
-
-        // Port number for HTTP PUT logging on Logentries API server. 
-        const int LeApiHttpPort = 80;
-
-        // Port number for SSL HTTP PUT logging on Logentries API server. 
-        const int LeApiHttpsPort = 443;
-
-        public LeClient(bool useHttpPut, bool useSsl, string url)
+        public LeClient(bool useHttpPut, bool useSsl, string url, int port)
         {
             m_UseSsl = useSsl;
             _url = url;
-            if (!m_UseSsl)
-                m_TcpPort = useHttpPut ? LeApiHttpPort : LeApiTokenPort;
-            else
-                m_TcpPort = useHttpPut ? LeApiHttpsPort : LeApiTokenTlsPort;
+            m_TcpPort = port;
         }
 
         bool m_UseSsl;
